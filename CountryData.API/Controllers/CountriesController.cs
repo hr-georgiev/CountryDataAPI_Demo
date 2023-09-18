@@ -1,4 +1,5 @@
-﻿using CountryData.API.Models;
+﻿using CountryData.API.Extensions;
+using CountryData.API.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CountryData.API.Controllers
@@ -20,12 +21,44 @@ namespace CountryData.API.Controllers
         }
 
         [HttpGet(Name = "GetCountries")]
-        public async Task<IEnumerable<Country>> Get([FromQuery] int population = 0, [FromQuery] string? name = null, [FromQuery] string? sortDirection = null)
+        public async Task<OperationResult<IEnumerable<Country>>> Get(
+            [FromQuery] int population = 0,
+            [FromQuery] int limit = 0,
+            [FromQuery] string? name = null,
+            [FromQuery] string? sortDirection = null)
         {
-            using HttpClient client = _httpClientFactory.CreateClient();
-            var countries = await client.GetFromJsonAsync<IEnumerable<Country>>(RestCountriesAllEndpoint);
-            
-            return countries ?? Enumerable.Empty<Country>();
+            using HttpClient client = _httpClientFactory.CreateClient();            
+
+            try
+            {
+                var countries = await client.GetFromJsonAsync<IEnumerable<Country>>(RestCountriesAllEndpoint);
+
+                if (countries is null)
+                {
+                    return new OperationResult<IEnumerable<Country>>(
+                        false,
+                        Enumerable.Empty<Country>(),
+                        "Failed to fetch countries");
+                }
+
+                List<Country> processedList = countries
+                .FilterByPopulationSize(population)
+                .FilterByName(name)
+                .SortByName(sortDirection)
+                .Limit(limit)
+                .ToList();
+
+                return new OperationResult<IEnumerable<Country>>(true, processedList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+
+                return new OperationResult<IEnumerable<Country>>(
+                        false,
+                        Enumerable.Empty<Country>(),
+                        ex.Message);
+            }
         }
     }
 }
