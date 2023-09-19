@@ -2,9 +2,9 @@
 {
     public record NameData
     {
-        public string Common { get; init; }
+        public string Common { get; init; } = string.Empty;
 
-        public string Official { get; init; }
+        public string Official { get; init; } = string.Empty;
 
     }
 }

@@ -2,6 +2,6 @@
 {
     public record Name : NameData
     {
-        public Dictionary<string, NameData> NativeName { get; init; }
+        public Dictionary<string, NameData> NativeName { get; init; } = new();
     }
 }

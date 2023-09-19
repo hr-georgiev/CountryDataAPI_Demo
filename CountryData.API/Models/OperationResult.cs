@@ -1,6 +1,6 @@
 ﻿namespace CountryData.API.Models
 {
-    public record OperationResult<T>(bool isSuccess, T Result, string? errorMessage = null) where T : class
+    public record OperationResult<T>(T Result, bool IsSuccess = true, string? ErrorMessage = null) where T : class
     {
     }
 }

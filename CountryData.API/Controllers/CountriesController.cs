@@ -21,9 +21,10 @@ namespace CountryData.API.Controllers
         }
 
         [HttpGet(Name = "GetCountries")]
+        [ProducesResponseType(typeof(OperationResult<IEnumerable<Country>>), 200)]
         public async Task<OperationResult<IEnumerable<Country>>> Get(
-            [FromQuery] int population = 0,
-            [FromQuery] int limit = 0,
+            [FromQuery] int? maxPopulation = null,
+            [FromQuery] int? limit = null,
             [FromQuery] string? name = null,
             [FromQuery] string? sortDirection = null)
         {
@@ -36,28 +37,27 @@ namespace CountryData.API.Controllers
                 if (countries is null)
                 {
                     return new OperationResult<IEnumerable<Country>>(
-                        false,
                         Enumerable.Empty<Country>(),
-                        "Failed to fetch countries");
+                        IsSuccess: false,
+                        ErrorMessage: "Failed to fetch countries");
                 }
 
-                List<Country> processedList = countries
-                .FilterByPopulationSize(population)
+                IEnumerable<Country> processedList = countries
+                .FilterByPopulationSize(maxPopulation)
                 .FilterByName(name)
                 .SortByName(sortDirection)
-                .Limit(limit)
-                .ToList();
+                .Limit(limit);
 
-                return new OperationResult<IEnumerable<Country>>(true, processedList);
+                return new OperationResult<IEnumerable<Country>>(processedList);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
 
                 return new OperationResult<IEnumerable<Country>>(
-                        false,
                         Enumerable.Empty<Country>(),
-                        ex.Message);
+                        false,
+                        "Something went wront");
             }
         }
     }

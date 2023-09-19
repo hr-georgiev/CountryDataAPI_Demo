@@ -5,6 +5,6 @@ namespace CountryData.API.Models.CountryData
     public record CapitalInfo
     {
         [JsonPropertyName("latlng")]
-        public double[] Coordinates { get; init; }
+        public double[] Coordinates { get; init; } = Array.Empty<double>();
     }
 }

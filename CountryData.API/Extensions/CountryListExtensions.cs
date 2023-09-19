@@ -1,4 +1,5 @@
 ﻿using CountryData.API.Models;
+using System.Linq;
 
 namespace CountryData.API.Extensions
 {
@@ -11,17 +12,22 @@ namespace CountryData.API.Extensions
                 return countries;
             }
 
-            return countries.Where(c => c.Name.Common.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
+            return countries.Where(c => c.Name.Common.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        public static IEnumerable<Country> FilterByPopulationSize(this IEnumerable<Country> countries, int sizeInMillions)
+        public static IEnumerable<Country> FilterByPopulationSize(this IEnumerable<Country> countries, int? sizeInMillions)
         {
-            if (sizeInMillions <= 0)
+            if (sizeInMillions is null)
             {
                 return countries;
             }
 
-            return countries.Where(c => c.Population <= (sizeInMillions * 1_000_000));
+            if (sizeInMillions <= 0)
+            {
+                return Enumerable.Empty<Country>();
+            }
+
+            return countries.Where(c => c.Population <= checked(sizeInMillions * 1_000_000));
         }
 
         public static IEnumerable<Country> SortByName(this IEnumerable<Country> countries, string? direction)
@@ -44,14 +50,14 @@ namespace CountryData.API.Extensions
             throw new ArgumentOutOfRangeException(nameof(direction));
         }
 
-        public static IEnumerable<Country> Limit(this IEnumerable<Country> countries, int limit)
+        public static IEnumerable<Country> Limit(this IEnumerable<Country> countries, int? limit)
         {
-            if (limit > 0)
+            if (limit is null)
             {
-                return countries.Take(limit);
+                return countries;
             }
 
-            return countries;
+            return countries.Take(limit.Value);
         }
     }
 }
